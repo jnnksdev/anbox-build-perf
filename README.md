@@ -1,6 +1,6 @@
 As a maintainer and developer I want Anbox build time to be quicker to improve the development workflow and to see results faster. This is  especially relevant for rebuilds with small changes.
 
-This issue will be a report style based work log with a set of experiments and implementations for each topic.
+This repository will be a report style based work log with a set of experiments and implementations for each topic.
 
 Feedback and suggestions are always welcome.
 
@@ -34,23 +34,16 @@ No changes to the code base are made and the optimized build should result in th
 C++20 introduced modules which act as packages and can be used to shorted build times by providing stricter inter package interfaces. By reducing the cross module references responsibilities will be more granular, but also more separatable which allows for greater distiction between components that need to be rebuilt and some that do not.  
 These changes might introduce differences in the build artifacts and might split the final binary into multiple libraries.
 
-----------
 
+# Static Compilation of Dependencies and External Libraries
+By statically providing library functionatlity during the Docker image build process, the dependecy can be ignored during Anbox build, since it is already compiled and usable.This would require the compilation and deployment of the library for all build environments, which introduces complexity for non-docker users.
 
+Furthermore the value of providing libraries statically is propertional on the level of dependency, or rather how deep the dependency is integrated into Anbox. Theoretical performance improvements may be overshadowed by multitasking build systems being able to compile multiple parts of the program simultaneously.
+When compiling a lbrary by itself the build time may be ten seconds. Anbox build time may be reduced by ten seconds as well, as long as it is a necessary step before anything else can be compiled. This would for example be the case for the C++ standard library, as it is used across almost all source files and a universal dependecy.
+In most cases though the dependecy is used in a small subsection of the project as for example GoogleTest and GoogleMock wich are only used during unit testing or process-cpp which is exclusively used in the command line interface.
+With CMake and Make able to parallelize the workload the build time reduction may not be as linear as expected.
 
-
------
-
-
-
-
-
-
-### Notes
-* process-cpp can be built standalone, but needs `set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++14")` in CMakeLists.txt
-    * otherwise `namespace linux` will be marked with an error `expected identifier before numeric constant` or `expected unqualified-id before numeric constant`
-    * more info: [Build error when set (CMAKE_CXX_STANDARD 11)](https://github.com/cinder/Cinder/issues/2108)
-
-
-
-* none of the following packages are required to build anbox: `ca-certificates` `cmake-data` `cmake-extras` `debhelper` `dbus` `git` 
+## Static Compilation of cpu_features
+Providing the dependency *cpu_features* as precompiled library for each build reduced the full-build-time by only about 300ms, but increased the docker image build time by about 1.3 seconds.
+The change brings benefits for developers only after compiling Anbox for five times and is therefore rather insignificant.
+With that said, it is also a transparent change that does not alter behaviour for non-docker users and
