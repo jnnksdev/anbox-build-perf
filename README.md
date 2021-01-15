@@ -45,5 +45,3 @@ With CMake and Make able to parallelize the workload the build time reduction ma
 
 ## Static Compilation of cpu_features
 Providing the dependency *cpu_features* as precompiled library for each build reduced the full-build-time by only about 300ms, but increased the docker image build time by about 1.3 seconds.
-The change brings benefits for developers only after compiling Anbox for five times and is therefore rather insignificant.
-With that said, it is also a transparent change that does not alter behaviour for non-docker users and
